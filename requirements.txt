@@ -1,0 +1,9 @@
+fastapi
+numpy
+pydantic
+uvicorn
+google-genai
+Pillow
+requests
+tiktoken
+python-dotenv
