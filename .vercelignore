@@ -1,0 +1,7 @@
+Course_Content/
+Discourse_Content/
+downloaded_images/
+__pycache__/
+.venv/
+data.json
+Build_json_data.py
