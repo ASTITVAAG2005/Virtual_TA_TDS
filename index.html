@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TDS Virtual TA</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <style>
+    body {
+      font-family: 'Inter', 'Segoe UI', 'Roboto', Arial, sans-serif;
+      background: #18181b;
+      color: #e5e7eb;
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background: #23272f;
+      color: #fff;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    }
+    header h1 {
+      margin: 0;
+      font-size: 1.4rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+    header button {
+      background: #323a4d;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      color: #fff;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background 0.2s;
+    }
+    header button:hover {
+      background: #2563eb;
+    }
+    #chat {
+      flex: 1;
+      overflow-y: auto;
+      padding: 2rem 0.5rem 1rem 0.5rem;
+      background: #18181b;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .message {
+      margin: 0.5rem 0;
+      padding: 1rem 1.2rem;
+      border-radius: 16px;
+      max-width: 70%;
+      white-space: pre-wrap;
+      line-height: 1.6;
+      font-size: 1.08rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+      word-break: break-word;
+    }
+    .user {
+      background: linear-gradient(90deg, #2563eb 60%, #1e293b 100%);
+      color: #fff;
+      margin-left: auto;
+      border-bottom-right-radius: 4px;
+      border-top-right-radius: 16px;
+      border-top-left-radius: 16px;
+      border-bottom-left-radius: 16px;
+    }
+    .bot {
+      background: #23272f;
+      color: #e5e7eb;
+      margin-right: auto;
+      border-bottom-left-radius: 4px;
+      border-top-right-radius: 16px;
+      border-top-left-radius: 16px;
+      border-bottom-right-radius: 16px;
+    }
+    #input-area {
+      background: linear-gradient(90deg, #23272f 60%, #2d3340 100%);
+      border-top: 1px solid #323a4d;
+      border-bottom: 1px solid #23272f;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+      padding: 1.2rem 2rem 1.2rem 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      border-radius: 18px;
+      z-index: 2;
+      max-width: 975px;
+      width: 90%;
+      margin: 0 auto 2.5rem auto;
+      position: relative;
+    }
+    button.icon-btn {
+      background: #18181b;
+      border: none;
+      padding: 0.3rem;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: 0.2rem;
+      margin-right: 0.2rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+      transition: background 0.2s;
+    }
+    button.icon-btn:hover {
+      background: #23272f;
+    }
+    button.icon-btn svg {
+      display: block;
+      border-radius: 50%;
+    }
+    #controls {
+      display: flex;
+      align-items: center;  
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+      justify-content: flex-end;
+      flex-direction: row;
+    }
+    #question {
+      flex: 1;
+      padding: 0.8rem 1rem;
+      border: 1px solid #323a4d;
+      border-radius: 10px;
+      font-size: 1.08rem;
+      background: #18181b;
+      color: #e5e7eb;
+      outline: none;
+      transition: border 0.2s;
+      margin-right: 0.3rem;
+    }
+    #question:focus {
+      border-color: #2563eb;
+    }
+    button.send-btn {
+      padding: 0.8rem 1.4rem;
+      font-size: 1.08rem;
+      border: none;
+      background: linear-gradient(90deg, #2563eb 60%, #1e293b 100%);
+      color: #fff;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background 0.2s;
+      margin-left: 0.5rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+    }
+    button.send-btn:hover {
+      background: #2563eb;
+    }
+    .links {
+      margin-top: 0.7rem;
+      background: #18181b;
+      border-radius: 8px;
+      padding: 0.5rem 0.8rem;
+    }
+    .links a {
+      display: block;
+      color: #60a5fa;
+      text-decoration: underline;
+      margin: 2px 0;
+      font-size: 0.98rem;
+      transition: color 0.2s;
+    }
+    .links a:hover {
+      color: #2563eb;
+    }
+    .preview-container {
+      margin-top: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .preview {
+      max-width: 120px;
+      max-height: 120px;
+      border: 1px solid #323a4d;
+      border-radius: 8px;
+      background: #23272f;
+    }
+    .remove-btn {
+      background: #ef4444;
+      border: none;
+      color: white;
+      padding: 0.3rem 0.7rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+    .remove-btn:hover {
+      background: #dc2626;
+    }
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      margin: 0.5rem 0;
+      min-height: 48px;
+      background: transparent;
+      box-shadow: none;
+      padding: 0;
+      border-radius: 0;
+    }
+    .spinner {
+      width: 28px;
+      height: 28px;
+      border: 3px solid #23272f;
+      border-top: 3px solid #2563eb;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 10px;
+      background: transparent;
+    }
+    .loading-text {
+      font-size: 1.08rem;
+      color: #60a5fa;
+      letter-spacing: 0.02em;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      background: transparent;
+      padding: 0;
+      border-radius: 0;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .loading-text {
+      font-size: 1.08rem;
+      color: #60a5fa;
+      letter-spacing: 0.02em;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+    }
+    .dot-anim {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background: #2563eb;
+      border-radius: 50%;
+      margin-left: 4px;
+      opacity: 0.7;
+      animation: dotFade 1.2s infinite;
+    }
+    .dot-anim:nth-child(2) { animation-delay: 0.2s; }
+    .dot-anim:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes dotFade {
+      0%, 80%, 100% { opacity: 0.3; }
+      40% { opacity: 1; }
+    }
+    ::selection {
+      background: #2563eb;
+      color: #fff;
+    }
+    @media (max-width: 600px) {
+      header, #input-area {
+        padding: 1rem 0.5rem;
+      }
+      .message {
+        font-size: 1rem;
+        padding: 0.7rem 0.7rem;
+      }
+    }
+    .query-banner {
+      background: linear-gradient(90deg, #2563eb 0%, #1e40af 100%);
+      padding: 2rem;
+      text-align: center;
+      margin: 1rem auto;
+      opacity: 1;
+      transform: translateY(0);
+      border-radius: 16px;
+      max-width: 975px;
+      width: 90%;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+    }
+
+    .query-banner h2 {
+      color: #ffffff;
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin: 0 0 1rem 0;
+      letter-spacing: 0.02em;
+    }
+
+    .query-banner p {
+      color: #e5e7eb;
+      font-size: 1.2rem;
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    .footer {
+      width: 100%;
+      text-align: center;
+      padding: 1.2rem 0 1.2rem 0;
+      color: #a1a1aa;
+      font-size: 1rem;
+      background: #18181b;
+      border-top: 1px solid #23272f;
+      letter-spacing: 0.03em;
+      font-family: 'Inter', 'Segoe UI', 'Roboto', Arial, sans-serif;
+      margin-top: auto;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>AI-powered Assistant for the Tools in Data Science Course</h1>
+    <button onclick="clearChat()">Refresh</button>
+  </header>
+
+  <div id="chat"></div>
+
+  <div class="query-banner">
+    <h2>Have Questions About Tools in Data Science?</h2>
+    <p>Ask anything about the course content, assignments, or concepts. You can also upload images of your code or errors!</p>
+  </div>
+
+  <div id="input-area">
+    <div id="controls">
+      <button class="icon-btn" id="imageBtn" title="Attach image" type="button">
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="32" height="32" rx="16" fill="#18181b"/>
+          <path d="M8 10a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2V10zm2 0v12h12V10H10zm2 8l2.5-3 2.5 3 3.5-4.5V20H10v-2zm1.5-6a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z" fill="#60a5fa"/>
+        </svg>
+      </button>
+      <input type="file" id="imageInput" accept="image/*" style="display:none" />
+      <input id="question" type="text" placeholder="Ask me something..." />
+      <button class="send-btn" onclick="sendQuestion()">Send</button>
+    </div>
+    <div class="preview-container" id="previewContainer" style="display:none">
+      <img id="preview" class="preview"/>
+      <button class="remove-btn" onclick="removeImage()">Remove</button>
+    </div>
+  </div>
+  <div class="footer">
+    <div>© 2025 Astitva Agarwal | IIT Madras | TDS Project (Retrieval-Augmented Generation) | Data Science & AI Applications</div>
+    <div class="social-links">
+      <a href="https://github.com/ASTITVAAG2005" target="_blank" class="social-link">
+        <svg height="20" width="20" viewBox="0 0 16 16" fill="#a1a1aa">
+          <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+        </svg>
+        GitHub
+      </a>
+      <a href="https://www.linkedin.com/in/astitva-agarwal-b587422a6" target="_blank" class="social-link">
+        <svg height="20" width="20" viewBox="0 0 24 24" fill="#a1a1aa">
+          <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+        </svg>
+        LinkedIn
+      </a>
+      <a href="mailto:astitvaag2005@gmail.com" class="social-link">
+        <svg height="20" width="20" viewBox="0 0 24 24" fill="#a1a1aa">
+          <path d="M22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6zm-2 0l-8 5-8-5h16zm0 12H4V8l8 5 8-5v10z"/>
+        </svg>
+        Contact
+      </a>
+    </div>
+  </div>
+
+  <style>
+    .social-links {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      margin-top: 0.8rem;
+    }
+    .social-link {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #a1a1aa;
+      text-decoration: none;
+      transition: color 0.2s;
+      font-size: 0.95rem;
+    }
+    .social-link:hover {
+      color: #2563eb;
+    }
+    .social-link:hover svg {
+      fill: #2563eb;
+    }
+    .social-link svg {
+      transition: fill 0.2s;
+    }
+    .message.bot p {
+  margin: 0.3em 0;   /* reduce vertical gap between paragraphs */
+}
+
+    .message.bot h1, 
+    .message.bot h2, 
+    .message.bot h3, 
+    .message.bot strong {
+    margin: 0.4em 0 0.2em;  /* smaller heading spacing */
+    font-weight: 600;
+    }
+
+    .message.bot ul, 
+    .message.bot ol {
+    margin: 0.2em 0 0.2em 1.2em; /* compact lists */
+    padding-left: 1em;
+    }
+
+    .message.bot li {
+    margin: 0.1em 0; /* tighten list item spacing */
+    }
+
+  </style>
+
+  <script>
+    const API_URL = "http://127.0.0.1:8000/api/"; // change when deployed
+    let imageBase64 = null;
+    let loadingDiv = null;
+
+    // Image icon button opens file picker
+    document.getElementById("imageBtn").addEventListener("click", function() {
+      document.getElementById("imageInput").click();
+    });
+
+    document.getElementById("imageInput").addEventListener("change", function() {
+      const file = this.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        imageBase64 = e.target.result.split(",")[1];
+        document.getElementById("preview").src = e.target.result;
+        document.getElementById("previewContainer").style.display = "flex";
+      };
+      reader.readAsDataURL(file);
+    });
+
+    function removeImage() {
+      imageBase64 = null;
+      document.getElementById("imageInput").value = "";
+      document.getElementById("previewContainer").style.display = "none";
+    }
+
+    async function sendQuestion() {
+      const input = document.getElementById("question");
+      const text = input.value.trim();
+      if (!text && !imageBase64) return;
+
+      // Hide the query banner after first question
+      const queryBanner = document.querySelector('.query-banner');
+      if (queryBanner) {
+        queryBanner.style.transition = 'opacity 0.5s, transform 0.5s';
+        queryBanner.style.opacity = '0';
+        queryBanner.style.transform = 'translateY(-20px)';
+        setTimeout(() => queryBanner.remove(), 500);
+      }
+
+      // Show question and image in chat
+      let userHtml = "";
+      if (text) userHtml += `<div>${text}</div>`;
+      if (imageBase64) {
+        userHtml += `<div><img src='data:image/*;base64,${imageBase64}' alt='uploaded' style='max-width:120px;max-height:120px;border-radius:6px;border:1px solid #ccc;margin-top:6px;'/></div>`;
+      }
+      addMessage(userHtml || "[Image uploaded]", "user");
+      input.value = "";
+
+      showLoading();
+
+      try {
+        const payload = { question: text };
+        if (imageBase64) payload.image = imageBase64;
+
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        hideLoading();
+
+        if (data.error) {
+          addMessage("❌ " + data.error, "bot");
+          return;
+        }
+
+        let answerHtml = `<div>${marked.parse(data.answer)}</div>`;
+
+        if (data.links && data.links.length) {
+        answerHtml += `<div class="links"><strong>References:</strong>`;
+        data.links.slice(0, 6).forEach(link => {
+            answerHtml += `<a href="${link.url}" target="_blank">${link.text || link.url}</a>`;
+        });
+        answerHtml += `</div>`;
+        }
+
+        addMessage(answerHtml, "bot");
+      } catch (err) {
+        hideLoading();
+        addMessage("❌ Error connecting to server: " + err, "bot");
+      } finally {
+        removeImage();
+      }
+    }
+
+    function addMessage(content, sender) {
+      const chat = document.getElementById("chat");
+      const div = document.createElement("div");
+      div.className = "message " + sender;
+      div.innerHTML = content;
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function showLoading() {
+      hideLoading(); // ensure only one loader
+      const chat = document.getElementById("chat");
+      loadingDiv = document.createElement("div");
+      loadingDiv.className = "loading bot";
+      loadingDiv.innerHTML = `
+        <div class="spinner"></div>
+        <span class="loading-text">Thinking
+          <span class="dot-anim"></span>
+          <span class="dot-anim"></span>
+          <span class="dot-anim"></span>
+        </span>
+      `;
+      chat.appendChild(loadingDiv);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function hideLoading() {
+      if (loadingDiv) {
+        loadingDiv.remove();
+        loadingDiv = null;
+      }
+    }
+
+    function clearChat() {
+      document.getElementById("chat").innerHTML = "";
+      removeImage();
+      document.getElementById("question").value = "";
+    }
+
+    document.getElementById("question").addEventListener("keydown", e => {
+      if (e.key === "Enter") sendQuestion();
+    });
+  </script>
+</body>
+</html>
